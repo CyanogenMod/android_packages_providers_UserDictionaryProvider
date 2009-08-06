@@ -18,7 +18,9 @@
         package="com.android.providers.userdictionary"
         android:sharedUserId="android.uid.shared">
 
-    <application android:process="android.process.acore">
+    <application android:process="android.process.acore"
+        android:backupAgent="DictionaryBackupAgent"
+        >
         <provider android:name="UserDictionaryProvider" android:authorities="user_dictionary"
                 android:syncable="false" android:multiprocess="false"
                 android:readPermission="android.permission.READ_USER_DICTIONARY" 
