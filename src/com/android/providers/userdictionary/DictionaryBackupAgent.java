@@ -145,8 +145,10 @@ public class DictionaryBackupAgent extends BackupHelperAgent {
     private byte[] getDictionary() {
         Cursor cursor = getContentResolver().query(Words.CONTENT_URI, PROJECTION,
                 null, null, Words.WORD);
+        if (cursor == null) return EMPTY_DATA;
         if (!cursor.moveToFirst()) {
             Log.e(TAG, "Couldn't read from the cursor");
+            cursor.close();
             return EMPTY_DATA;
         }
         byte[] sizeBytes = new byte[4];
@@ -165,11 +167,12 @@ public class DictionaryBackupAgent extends BackupHelperAgent {
                 gzip.write(line);
                 cursor.moveToNext();
             }
-            cursor.close();
             gzip.finish();
         } catch (IOException ioe) {
             Log.e(TAG, "Couldn't compress the dictionary:\n" + ioe);
             return EMPTY_DATA;
+        } finally {
+            cursor.close();
         }
         return baos.toByteArray();
     }
