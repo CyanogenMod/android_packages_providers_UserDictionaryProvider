@@ -24,6 +24,7 @@ import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.zip.CRC32;
 import java.util.zip.GZIPInputStream;
@@ -197,28 +198,42 @@ public class DictionaryBackupAgent extends BackupHelperAgent {
             return;
         }
         int pos = 0;
-        while (pos < dictionary.length) {
+        while (pos + 4 < dictionary.length) {
             int length = readInt(dictionary, pos);
             pos += 4;
+            if (pos + length > dictionary.length) {
+                Log.e(TAG, "Insufficient data");
+            }
             String line = new String(dictionary, pos, length);
             pos += length;
             StringTokenizer st = new StringTokenizer(line, SEPARATOR);
-            String word = st.nextToken();
-            String frequency = st.nextToken();
-            String locale = null;
-            String appid = null;
-            if (st.hasMoreTokens()) locale = st.nextToken();
-            if (st.hasMoreTokens()) appid = st.nextToken();
-            int frequencyInt = Integer.parseInt(frequency);
-            int appidInt = appid != null? Integer.parseInt(appid) : 0;
+            String word;
+            String frequency;
+            try {
+                word = st.nextToken();
+                frequency = st.nextToken();
+                String locale = null;
+                String appid = null;
+                if (st.hasMoreTokens()) locale = st.nextToken();
+                if ("null".equalsIgnoreCase(locale)) locale = null;
+                if (st.hasMoreTokens()) appid = st.nextToken();
+                int frequencyInt = Integer.parseInt(frequency);
+                int appidInt = appid != null? Integer.parseInt(appid) : 0;
 
-            if (!TextUtils.isEmpty(frequency)) {
-                cv.clear();
-                cv.put(Words.WORD, word);
-                cv.put(Words.FREQUENCY, frequencyInt);
-                cv.put(Words.LOCALE, locale);
-                cv.put(Words.APP_ID, appidInt);
-                getContentResolver().insert(contentUri, cv);
+                if (!TextUtils.isEmpty(frequency)) {
+                    cv.clear();
+                    cv.put(Words.WORD, word);
+                    cv.put(Words.FREQUENCY, frequencyInt);
+                    cv.put(Words.LOCALE, locale);
+                    cv.put(Words.APP_ID, appidInt);
+                    // Remove duplicate first
+                    getContentResolver().delete(contentUri, Words.WORD + "=?", new String[] {word});
+                    getContentResolver().insert(contentUri, cv);
+                }
+            } catch (NoSuchElementException nsee) {
+                Log.e(TAG, "Token format error\n" + nsee);
+            } catch (NumberFormatException nfe) {
+                Log.e(TAG, "Number format error\n" + nfe);
             }
         }
     }
