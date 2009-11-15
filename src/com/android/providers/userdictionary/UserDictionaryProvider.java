@@ -17,6 +17,9 @@
 package com.android.providers.userdictionary;
 
 
+import java.util.HashMap;
+
+import android.backup.BackupManager;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -32,8 +35,6 @@ import android.provider.UserDictionary;
 import android.provider.UserDictionary.Words;
 import android.text.TextUtils;
 import android.util.Log;
-
-import java.util.HashMap;
 
 /**
  * Provides access to a database of user defined words. Each item has a word and a frequency.
@@ -58,7 +59,9 @@ public class UserDictionaryProvider extends ContentProvider {
     private static final int WORDS = 1;
     
     private static final int WORD_ID = 2;
-    
+
+    private BackupManager mBackupManager;
+
     /**
      * This class helps open, create, and upgrade the database file.
      */
@@ -93,6 +96,7 @@ public class UserDictionaryProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         mOpenHelper = new DatabaseHelper(getContext());
+        mBackupManager = new BackupManager(getContext());
         return true;
     }
 
@@ -181,6 +185,7 @@ public class UserDictionaryProvider extends ContentProvider {
         if (rowId > 0) {
             Uri wordUri = ContentUris.withAppendedId(UserDictionary.Words.CONTENT_URI, rowId);
             getContext().getContentResolver().notifyChange(wordUri, null);
+            mBackupManager.dataChanged();
             return wordUri;
         }
 
@@ -207,6 +212,7 @@ public class UserDictionaryProvider extends ContentProvider {
         }
 
         getContext().getContentResolver().notifyChange(uri, null);
+        mBackupManager.dataChanged();
         return count;
     }
 
@@ -230,6 +236,7 @@ public class UserDictionaryProvider extends ContentProvider {
         }
 
         getContext().getContentResolver().notifyChange(uri, null);
+        mBackupManager.dataChanged();
         return count;
     }
 
