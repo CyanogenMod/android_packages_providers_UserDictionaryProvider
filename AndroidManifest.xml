@@ -18,8 +18,6 @@
         package="com.android.providers.userdictionary"
         android:sharedUserId="android.uid.shared">
 
-    <uses-permission android:name="android.permission.BACKUP_DATA" />
-
     <application android:process="android.process.acore"
         android:allowClearUserData="false"
         android:backupAgent="DictionaryBackupAgent"
