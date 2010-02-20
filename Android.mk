@@ -10,4 +10,6 @@ LOCAL_JAVA_LIBRARIES := ext
 LOCAL_PACKAGE_NAME := UserDictionaryProvider
 LOCAL_CERTIFICATE := shared
 
+LOCAL_PROGUARD_ENABLED := disabled
+
 include $(BUILD_PACKAGE)
