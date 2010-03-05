@@ -19,7 +19,7 @@ package com.android.providers.userdictionary;
 
 import java.util.HashMap;
 
-import android.backup.BackupManager;
+import android.app.backup.BackupManager;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;

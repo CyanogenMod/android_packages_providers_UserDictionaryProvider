@@ -30,9 +30,9 @@ import java.util.zip.CRC32;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import android.backup.BackupDataInput;
-import android.backup.BackupDataOutput;
-import android.backup.BackupHelperAgent;
+import android.app.backup.BackupDataInput;
+import android.app.backup.BackupDataOutput;
+import android.app.backup.BackupHelperAgent;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
