@@ -32,7 +32,7 @@ import java.util.zip.GZIPOutputStream;
 
 import android.app.backup.BackupDataInput;
 import android.app.backup.BackupDataOutput;
-import android.app.backup.BackupHelperAgent;
+import android.app.backup.BackupAgentHelper;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
@@ -44,7 +44,7 @@ import android.util.Log;
 /**
  * Performs backup and restore of the User Dictionary.
  */
-public class DictionaryBackupAgent extends BackupHelperAgent {
+public class DictionaryBackupAgent extends BackupAgentHelper {
 
     private static final String KEY_DICTIONARY = "userdictionary";
 
