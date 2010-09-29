@@ -10,6 +10,6 @@ LOCAL_JAVA_LIBRARIES := ext
 LOCAL_PACKAGE_NAME := UserDictionaryProvider
 LOCAL_CERTIFICATE := shared
 
-LOCAL_PROGUARD_FLAGS := -include $(LOCAL_PATH)/proguard.flags
+LOCAL_PROGUARD_FLAG_FILES := proguard.flags
 
 include $(BUILD_PACKAGE)
