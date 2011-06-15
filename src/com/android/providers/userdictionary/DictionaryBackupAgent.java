@@ -61,13 +61,15 @@ public class DictionaryBackupAgent extends BackupAgentHelper {
     private static final int COLUMN_FREQUENCY = 2;
     private static final int COLUMN_LOCALE = 3;
     private static final int COLUMN_APPID = 4;
+    private static final int COLUMN_SHORTCUT = 5;
 
     private static final String[] PROJECTION = {
         Words._ID,
         Words.WORD,
         Words.FREQUENCY,
         Words.LOCALE,
-        Words.APP_ID
+        Words.APP_ID,
+        Words.SHORTCUT
     };
 
     @Override
@@ -161,7 +163,11 @@ public class DictionaryBackupAgent extends BackupAgentHelper {
                 int frequency = cursor.getInt(COLUMN_FREQUENCY);
                 String locale = cursor.getString(COLUMN_LOCALE);
                 int appId = cursor.getInt(COLUMN_APPID);
-                String out = name + "|" + frequency + "|" + locale + "|" + appId;
+                String shortcut = cursor.getString(COLUMN_SHORTCUT);
+                if (TextUtils.isEmpty(shortcut)) shortcut = "";
+                // TODO: escape the string
+                String out = name + SEPARATOR + frequency + SEPARATOR + locale + SEPARATOR + appId
+                        + SEPARATOR + shortcut;
                 byte[] line = out.getBytes();
                 writeInt(sizeBytes, 0, line.length);
                 gzip.write(sizeBytes);
@@ -206,6 +212,7 @@ public class DictionaryBackupAgent extends BackupAgentHelper {
             }
             String line = new String(dictionary, pos, length);
             pos += length;
+            // TODO: unescape the string
             StringTokenizer st = new StringTokenizer(line, SEPARATOR);
             String word;
             String frequency;
@@ -214,9 +221,12 @@ public class DictionaryBackupAgent extends BackupAgentHelper {
                 frequency = st.nextToken();
                 String locale = null;
                 String appid = null;
+                String shortcut = null;
                 if (st.hasMoreTokens()) locale = st.nextToken();
                 if ("null".equalsIgnoreCase(locale)) locale = null;
                 if (st.hasMoreTokens()) appid = st.nextToken();
+                if (st.hasMoreTokens()) shortcut = st.nextToken();
+                if (TextUtils.isEmpty(shortcut)) shortcut = null;
                 int frequencyInt = Integer.parseInt(frequency);
                 int appidInt = appid != null? Integer.parseInt(appid) : 0;
 
@@ -226,8 +236,10 @@ public class DictionaryBackupAgent extends BackupAgentHelper {
                     cv.put(Words.FREQUENCY, frequencyInt);
                     cv.put(Words.LOCALE, locale);
                     cv.put(Words.APP_ID, appidInt);
+                    cv.put(Words.SHORTCUT, shortcut);
                     // Remove duplicate first
-                    getContentResolver().delete(contentUri, Words.WORD + "=?", new String[] {word});
+                    getContentResolver().delete(contentUri, Words.WORD + "=? and "
+                            + Words.SHORTCUT + "=?", new String[] {word, shortcut});
                     getContentResolver().insert(contentUri, cv);
                 }
             } catch (NoSuchElementException nsee) {

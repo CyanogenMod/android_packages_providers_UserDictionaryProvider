@@ -41,6 +41,19 @@ import android.util.Log;
  */
 public class UserDictionaryProvider extends ContentProvider {
 
+    /**
+     * DB versions are as follow:
+     *
+     * Version 1:
+     *   Up to IceCreamSandwich 4.0.3 - API version 15
+     *   Contient ID (INTEGER PRIMARY KEY), WORD (TEXT), FREQUENCY (INTEGER),
+     *   LOCALE (TEXT), APP_ID (INTEGER).
+     *
+     * Version 2:
+     *   From IceCreamSandwich, 4.1 - API version 16
+     *   Adds SHORTCUT (TEXT).
+     */
+
     private static final String AUTHORITY = UserDictionary.AUTHORITY;
 
     private static final String TAG = "UserDictionaryProvider";
@@ -48,7 +61,7 @@ public class UserDictionaryProvider extends ContentProvider {
     private static final Uri CONTENT_URI = UserDictionary.CONTENT_URI;
 
     private static final String DATABASE_NAME = "user_dict.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     private static final String USERDICT_TABLE_NAME = "words";
 
@@ -79,15 +92,23 @@ public class UserDictionaryProvider extends ContentProvider {
                     + Words.FREQUENCY + " INTEGER,"
                     + Words.LOCALE + " TEXT,"
                     + Words.APP_ID + " INTEGER"
+                    + Words.SHORTCUT + " TEXT,"
                     + ");");
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
-                    + newVersion + ", which will destroy all old data");
-            db.execSQL("DROP TABLE IF EXISTS " + USERDICT_TABLE_NAME);
-            onCreate(db);
+            if (oldVersion == 1 && newVersion == 2) {
+                Log.i(TAG, "Upgrading database from version " + oldVersion
+                        + " to version 2: adding " + Words.SHORTCUT + " column");
+                db.execSQL("ALTER TABLE " + USERDICT_TABLE_NAME
+                        + " ADD " + Words.SHORTCUT + " TEXT;");
+            } else {
+                Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
+                        + newVersion + ", which will destroy all old data");
+                db.execSQL("DROP TABLE IF EXISTS " + USERDICT_TABLE_NAME);
+                onCreate(db);
+            }
         }
     }
 
@@ -177,7 +198,11 @@ public class UserDictionaryProvider extends ContentProvider {
         if (values.containsKey(Words.LOCALE) == false) {
             values.put(Words.LOCALE, (String) null);
         }
-        
+
+        if (values.containsKey(Words.SHORTCUT) == false) {
+            values.put(Words.SHORTCUT, (String) null);
+        }
+
         values.put(Words.APP_ID, 0);
 
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
@@ -251,5 +276,6 @@ public class UserDictionaryProvider extends ContentProvider {
         sDictProjectionMap.put(Words.FREQUENCY, Words.FREQUENCY);
         sDictProjectionMap.put(Words.LOCALE, Words.LOCALE);
         sDictProjectionMap.put(Words.APP_ID, Words.APP_ID);
+        sDictProjectionMap.put(Words.SHORTCUT, Words.SHORTCUT);
     }
 }
