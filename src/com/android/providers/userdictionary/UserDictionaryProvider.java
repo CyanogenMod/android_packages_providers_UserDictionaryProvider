@@ -91,8 +91,8 @@ public class UserDictionaryProvider extends ContentProvider {
                     + Words.WORD + " TEXT,"
                     + Words.FREQUENCY + " INTEGER,"
                     + Words.LOCALE + " TEXT,"
-                    + Words.APP_ID + " INTEGER"
-                    + Words.SHORTCUT + " TEXT,"
+                    + Words.APP_ID + " INTEGER,"
+                    + Words.SHORTCUT + " TEXT"
                     + ");");
         }
 
