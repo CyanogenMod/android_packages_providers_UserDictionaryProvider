@@ -26,6 +26,7 @@
         >
         <provider android:name="UserDictionaryProvider" android:authorities="user_dictionary"
                 android:syncable="false" android:multiprocess="false"
+                android:exported="true"
                 android:readPermission="android.permission.READ_USER_DICTIONARY" 
                 android:writePermission="android.permission.WRITE_USER_DICTIONARY" />
     </application>
