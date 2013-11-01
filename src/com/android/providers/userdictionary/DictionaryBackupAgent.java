@@ -41,6 +41,8 @@ import android.provider.UserDictionary.Words;
 import android.text.TextUtils;
 import android.util.Log;
 
+import libcore.io.IoUtils;
+
 /**
  * Performs backup and restore of the User Dictionary.
  */
@@ -156,8 +158,9 @@ public class DictionaryBackupAgent extends BackupAgentHelper {
         }
         byte[] sizeBytes = new byte[4];
         ByteArrayOutputStream baos = new ByteArrayOutputStream(cursor.getCount() * 10);
+        GZIPOutputStream gzip = null;
         try {
-            GZIPOutputStream gzip = new GZIPOutputStream(baos);
+            gzip = new GZIPOutputStream(baos);
             while (!cursor.isAfterLast()) {
                 String name = cursor.getString(COLUMN_WORD);
                 int frequency = cursor.getInt(COLUMN_FREQUENCY);
@@ -179,6 +182,7 @@ public class DictionaryBackupAgent extends BackupAgentHelper {
             Log.e(TAG, "Couldn't compress the dictionary:\n" + ioe);
             return EMPTY_DATA;
         } finally {
+            IoUtils.closeQuietly(gzip);
             cursor.close();
         }
         return baos.toByteArray();
