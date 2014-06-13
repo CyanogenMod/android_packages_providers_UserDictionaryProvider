@@ -24,6 +24,7 @@ import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.zip.CRC32;
@@ -218,11 +219,11 @@ public class DictionaryBackupAgent extends BackupAgentHelper {
             pos += length;
             // TODO: unescape the string
             StringTokenizer st = new StringTokenizer(line, SEPARATOR);
-            String word;
-            String frequency;
+            String previousWord = null;
+            String previousShortcut = null;
             try {
-                word = st.nextToken();
-                frequency = st.nextToken();
+                final String word = st.nextToken();
+                final String frequency = st.nextToken();
                 String locale = null;
                 String appid = null;
                 String shortcut = null;
@@ -233,19 +234,37 @@ public class DictionaryBackupAgent extends BackupAgentHelper {
                 if (TextUtils.isEmpty(shortcut)) shortcut = null;
                 int frequencyInt = Integer.parseInt(frequency);
                 int appidInt = appid != null? Integer.parseInt(appid) : 0;
+                // It seems there are cases where the same word is duplicated over and over
+                // many thousand times. To avoid killing the battery in this case, we skip this
+                // word if it's the same as the previous one. This is not meant to catch all
+                // duplicate words as there is no order guarantee, but only to save round
+                // trip to the database in the above case which can dramatically improve
+                // performance and battery use of the restore.
+                // Also, word and frequency are never supposed to be empty or null, but better
+                // safe than sorry.
+                if ((Objects.equals(word, previousWord)
+                        && Objects.equals(shortcut, previousShortcut))
+                        || TextUtils.isEmpty(frequency) || TextUtils.isEmpty(word)) {
+                    continue;
+                }
+                previousWord = word;
+                previousShortcut = shortcut;
 
-                if (!TextUtils.isEmpty(frequency)) {
-                    cv.clear();
-                    cv.put(Words.WORD, word);
-                    cv.put(Words.FREQUENCY, frequencyInt);
-                    cv.put(Words.LOCALE, locale);
-                    cv.put(Words.APP_ID, appidInt);
-                    cv.put(Words.SHORTCUT, shortcut);
-                    // Remove duplicate first
+                cv.clear();
+                cv.put(Words.WORD, word);
+                cv.put(Words.FREQUENCY, frequencyInt);
+                cv.put(Words.LOCALE, locale);
+                cv.put(Words.APP_ID, appidInt);
+                cv.put(Words.SHORTCUT, shortcut);
+                // Remove any duplicate first
+                if (null != shortcut) {
                     getContentResolver().delete(contentUri, Words.WORD + "=? and "
                             + Words.SHORTCUT + "=?", new String[] {word, shortcut});
-                    getContentResolver().insert(contentUri, cv);
+                } else {
+                    getContentResolver().delete(contentUri, Words.WORD + "=? and "
+                            + Words.SHORTCUT + " is null", new String[0]);
                 }
+                getContentResolver().insert(contentUri, cv);
             } catch (NoSuchElementException nsee) {
                 Log.e(TAG, "Token format error\n" + nsee);
             } catch (NumberFormatException nfe) {
