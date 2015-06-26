@@ -220,19 +220,19 @@ public class UserDictionaryProvider extends ContentProvider {
             values = new ContentValues();
         }
 
-        if (values.containsKey(Words.WORD)) {
+        if (!values.containsKey(Words.WORD)) {
             throw new SQLException("Word must be specified");
         }
 
-        if (values.containsKey(Words.FREQUENCY)) {
+        if (!values.containsKey(Words.FREQUENCY)) {
             values.put(Words.FREQUENCY, "1");
         }
 
-        if (values.containsKey(Words.LOCALE)) {
+        if (!values.containsKey(Words.LOCALE)) {
             values.put(Words.LOCALE, (String) null);
         }
 
-        if (values.containsKey(Words.SHORTCUT)) {
+        if (!values.containsKey(Words.SHORTCUT)) {
             values.put(Words.SHORTCUT, (String) null);
         }
 
